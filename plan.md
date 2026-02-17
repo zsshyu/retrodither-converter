@@ -347,7 +347,7 @@ function addRgbNoise(imageData: ImageData, amount: number): ImageData {
 
 ## 8. 当前项目状态
 
-**版本：** v1.2.0
+**版本：** v1.3.0
 **最后更新：** 2026-02-17
 **构建状态：** ✅ 通过
 
@@ -372,6 +372,7 @@ function addRgbNoise(imageData: ImageData, amount: number): ImageData {
 | Web Worker | ✅ | 后台处理 |
 | 响应式布局 | ✅ | 桌面/移动端，小屏幕适配优化 |
 | UI 风格优化 | ✅ | 复古打字机字体、亮灰白配色 |
+| 国际化 (i18n) | ✅ | 中文、英文、法语支持 |
 
 ### 待实现功能
 

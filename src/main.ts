@@ -5,6 +5,7 @@ import { debounce } from './utils/debounce';
 import { imageToCanvas, getImageData, putImageData, scaleImageNearestNeighbor } from './utils/canvas';
 import type { DitherAlgorithm, MatrixSize, ExportFormat, ExportScale, WorkerResponse, ColorMode, NoiseType } from './types';
 import ImageProcessorWorker from './workers/imageProcessor.worker?worker';
+import { translations, getLanguage, setLanguage, type Language } from './i18n';
 
 // DOM Elements
 const uploadArea = document.getElementById('upload-area')!;
@@ -48,8 +49,55 @@ const exportFormatSelect = document.getElementById('export-format') as HTMLSelec
 const exportScaleSelect = document.getElementById('export-scale') as HTMLSelectElement;
 const confirmDownloadBtn = document.getElementById('confirm-download-btn')!;
 
+// Language
+const languageSelect = document.getElementById('language-select') as HTMLSelectElement;
+
 // Worker
 let worker: Worker | null = null;
+
+// Apply language translations
+function applyLanguage(lang: Language): void {
+  const t = translations[lang];
+
+  // Update text content
+  document.getElementById('subtitle')!.textContent = t.subtitle;
+  document.getElementById('upload-hint')!.textContent = t.uploadHint;
+  document.getElementById('upload-support')!.textContent = t.uploadSupport;
+  document.getElementById('processing-text')!.textContent = t.processing;
+  document.getElementById('compare-btn')!.textContent = t.compareBtn;
+  document.getElementById('new-image-btn')!.textContent = t.newImageBtn;
+  document.getElementById('label-preset')!.textContent = t.preset;
+  document.getElementById('option-custom')!.textContent = t.custom;
+  document.getElementById('label-pixel-size')!.textContent = t.pixelSize;
+  document.getElementById('label-brightness')!.textContent = t.brightness;
+  document.getElementById('label-contrast')!.textContent = t.contrast;
+  document.getElementById('label-color-mode')!.textContent = t.colorMode;
+  document.getElementById('option-duotone')!.textContent = t.duotone;
+  document.getElementById('option-tint')!.textContent = t.tint;
+  document.getElementById('label-algorithm')!.textContent = t.algorithm;
+  document.getElementById('option-bayer')!.textContent = t.bayerOrdered;
+  document.getElementById('option-floyd')!.textContent = t.floydSteinberg;
+  document.getElementById('option-atkinson')!.textContent = t.atkinsonHigh;
+  document.getElementById('option-jarvis')!.textContent = t.jarvisSmooth;
+  document.getElementById('label-matrix')!.textContent = t.matrixSize;
+  document.getElementById('label-threshold')!.textContent = t.threshold;
+  document.getElementById('label-colors')!.textContent = t.colors;
+  document.getElementById('label-dark')!.textContent = t.darkColor;
+  document.getElementById('label-light')!.textContent = t.lightColor;
+  document.getElementById('label-noise-type')!.textContent = t.noiseType;
+  document.getElementById('option-grayscale')!.textContent = t.grayscaleNoise;
+  document.getElementById('option-rgb')!.textContent = t.rgbNoise;
+  document.getElementById('label-noise-amount')!.textContent = t.noiseAmount;
+  document.getElementById('reset-btn')!.textContent = t.reset;
+  document.getElementById('download-btn')!.textContent = t.download;
+  document.getElementById('label-format')!.textContent = t.format;
+  document.getElementById('label-scale')!.textContent = t.scale;
+  document.getElementById('option-scale-1')!.textContent = `1x (${t.scaleOriginal})`;
+  document.getElementById('confirm-download-btn')!.textContent = t.confirmDownload;
+
+  // Update language selector
+  languageSelect.value = lang;
+}
 
 // Initialize presets
 PRESETS.forEach((preset, index) => {
@@ -69,7 +117,7 @@ function loadImage(file: File): void {
     img.onload = () => {
       // Check size limit
       if (img.naturalWidth > 4096 || img.naturalHeight > 4096) {
-        alert('图片尺寸超过限制 (最大 4096x4096)');
+        alert(translations[getLanguage()].imageSizeError);
         return;
       }
 
@@ -340,3 +388,14 @@ confirmDownloadBtn.addEventListener('click', () => {
 
 // Initialize UI
 updateUI();
+
+// Initialize language
+const currentLang = getLanguage();
+applyLanguage(currentLang);
+
+// Language change event
+languageSelect.addEventListener('change', () => {
+  const lang = languageSelect.value as Language;
+  setLanguage(lang);
+  applyLanguage(lang);
+});
