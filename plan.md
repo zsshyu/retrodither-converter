@@ -347,7 +347,7 @@ function addRgbNoise(imageData: ImageData, amount: number): ImageData {
 
 ## 8. 当前项目状态
 
-**版本：** v1.4.0
+**版本：** v1.4.1
 **最后更新：** 2026-02-17
 **构建状态：** ✅ 通过
 
@@ -358,7 +358,7 @@ function addRgbNoise(imageData: ImageData, amount: number): ImageData {
 | 图片上传 | ✅ | 支持拖拽和点击上传 |
 | 像素化 | ✅ | 1-32px 可调 |
 | 亮度/对比度 | ✅ | -100 ~ +200 (扩展范围支持过曝效果) |
-| Bayer 抖动 | ✅ | 2x2, 4x4, 8x8 矩阵 |
+| Bayer 抖动 | ✅ | 2x2, 4x4, 8x8, 16x16, 32x32 矩阵 |
 | Floyd-Steinberg | ✅ | 误差扩散 |
 | Atkinson | ✅ | 高对比度 |
 | Jarvis | ✅ | 平滑过渡 |

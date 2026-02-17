@@ -1,5 +1,5 @@
 export type DitherAlgorithm = 'bayer' | 'floyd-steinberg' | 'atkinson' | 'jarvis';
-export type MatrixSize = 2 | 4 | 8;
+export type MatrixSize = 2 | 4 | 8 | 16 | 32;
 export type ExportFormat = 'png' | 'jpeg' | 'webp';
 export type ExportScale = 1 | 2 | 4;
 export type NoiseType = 'grayscale' | 'rgb';
