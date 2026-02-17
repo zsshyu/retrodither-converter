@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RetroDither Converter - 复古抖动风格生成器</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 -5 100 100'%3E%3Crect x='20' y='20' width='60' height='60' fill='white' stroke='black' stroke-width='6'/%3E%3Cline x1='-5' y1='70' x2='105' y2='30' stroke='black' stroke-width='8'/%3E%3C/svg%3E" />
+</head>
+<body class="bg-bg-primary text-text-primary min-h-screen font-light">
+  <div id="app" class="flex flex-col h-screen">
+    <!-- Header -->
+    <header class="bg-bg-secondary border-b border-bg-tertiary px-6 py-4 flex-shrink-0">
+      <h1 class="text-xl font-mono-title tracking-wide">RetroDither Converter</h1>
+      <p class="text-text-secondary text-sm font-light">复古抖动风格生成器</p>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0">
+      <!-- Preview Area -->
+      <div class="flex-1 flex flex-col min-h-[300px] lg:min-h-0 p-4 order-1 lg:order-1">
+        <!-- Upload Area (shown when no image) -->
+        <div id="upload-area" class="flex-1 flex items-center justify-center border-2 border-dashed border-bg-tertiary rounded-lg hover:border-accent transition-colors cursor-pointer min-h-[200px]">
+          <div class="text-center p-8">
+            <div class="text-4xl mb-4">📁</div>
+            <p class="text-text-secondary mb-2">拖拽图片到此处或点击上传</p>
+            <p class="text-text-secondary text-sm">支持 JPG, PNG, WebP (最大 4096x4096)</p>
+            <input type="file" id="file-input" accept="image/*" class="hidden" />
+          </div>
+        </div>
+
+        <!-- Canvas Area (shown when image loaded) -->
+        <div id="canvas-area" class="hidden flex-1 flex flex-col min-h-[200px]">
+          <div class="flex-1 relative overflow-auto bg-bg-secondary rounded-lg flex items-center justify-center min-h-[150px]">
+            <canvas id="preview-canvas" class="max-w-full max-h-full"></canvas>
+            <canvas id="original-canvas" class="hidden absolute max-w-full max-h-full"></canvas>
+            <!-- Loading Overlay -->
+            <div id="loading-overlay" class="hidden absolute inset-0 bg-black/50 flex items-center justify-center">
+              <div class="text-center">
+                <div class="animate-spin w-8 h-8 border-2 border-accent border-t-transparent rounded-full mx-auto mb-2"></div>
+                <p class="text-sm">处理中...</p>
+              </div>
+            </div>
+          </div>
+          <!-- Canvas Controls -->
+          <div class="flex gap-2 mt-3 flex-wrap">
+            <button id="compare-btn" class="px-4 py-2 bg-bg-tertiary rounded hover:bg-accent hover:text-black transition-colors text-sm">
+              按住对比原图
+            </button>
+            <button id="new-image-btn" class="px-4 py-2 bg-bg-tertiary rounded hover:bg-accent hover:text-black transition-colors text-sm">
+              上传新图片
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Control Panel -->
+      <aside id="control-panel" class="w-full lg:w-80 bg-bg-secondary border-t lg:border-t-0 lg:border-l border-bg-tertiary p-4 overflow-y-auto flex-shrink-0 order-2 lg:order-2 max-h-[50vh] lg:max-h-none">
+        <div class="space-y-6">
+          <!-- Presets -->
+          <section>
+            <label class="block text-sm font-medium mb-2">预设风格</label>
+            <select id="preset-select" class="w-full bg-bg-tertiary border border-bg-tertiary rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
+              <option value="">自定义</option>
+            </select>
+          </section>
+
+          <!-- Pixel Size -->
+          <section>
+            <label class="block text-sm font-medium mb-2">
+              像素大小 <span id="pixel-size-value" class="text-accent">4px</span>
+            </label>
+            <input type="range" id="pixel-size" min="1" max="32" value="4" class="w-full accent-accent" />
+          </section>
+
+          <!-- Brightness -->
+          <section>
+            <label class="block text-sm font-medium mb-2">
+              亮度 <span id="brightness-value" class="text-accent">0</span>
+            </label>
+            <input type="range" id="brightness" min="-100" max="100" value="0" class="w-full accent-accent" />
+          </section>
+
+          <!-- Contrast -->
+          <section>
+            <label class="block text-sm font-medium mb-2">
+              对比度 <span id="contrast-value" class="text-accent">20</span>
+            </label>
+            <input type="range" id="contrast" min="-100" max="200" value="20" class="w-full accent-accent" />
+          </section>
+
+          <!-- Color Mode -->
+          <section>
+            <label class="block text-sm font-medium mb-2">颜色模式</label>
+            <select id="color-mode" class="w-full bg-bg-tertiary border border-bg-tertiary rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
+              <option value="duotone">Duotone (双色抖动)</option>
+              <option value="tint">Tint (渐变色调)</option>
+            </select>
+          </section>
+
+          <!-- Algorithm (only for Duotone) -->
+          <section id="algorithm-section">
+            <label class="block text-sm font-medium mb-2">抖动算法</label>
+            <select id="algorithm" class="w-full bg-bg-tertiary border border-bg-tertiary rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
+              <option value="bayer">Bayer (有序抖动)</option>
+              <option value="floyd-steinberg">Floyd-Steinberg (误差扩散)</option>
+              <option value="atkinson">Atkinson (高对比度)</option>
+              <option value="jarvis">Jarvis (平滑过渡)</option>
+            </select>
+          </section>
+
+          <!-- Matrix Size (only for Bayer) -->
+          <section id="matrix-section">
+            <label class="block text-sm font-medium mb-2">矩阵尺寸</label>
+            <select id="matrix-size" class="w-full bg-bg-tertiary border border-bg-tertiary rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
+              <option value="2">2x2</option>
+              <option value="4" selected>4x4</option>
+              <option value="8">8x8</option>
+            </select>
+          </section>
+
+          <!-- Threshold (only for Duotone) -->
+          <section id="threshold-section">
+            <label class="block text-sm font-medium mb-2">
+              阈值 <span id="threshold-value" class="text-accent">128</span>
+            </label>
+            <input type="range" id="threshold" min="0" max="255" value="128" class="w-full accent-accent" />
+          </section>
+
+          <!-- Colors -->
+          <section>
+            <label class="block text-sm font-medium mb-2">颜色</label>
+            <div class="flex gap-4">
+              <div class="flex-1">
+                <label class="block text-xs text-text-secondary mb-1">暗部</label>
+                <input type="color" id="dark-color" value="#000000" class="w-full h-10 rounded cursor-pointer bg-transparent" />
+              </div>
+              <div class="flex-1">
+                <label class="block text-xs text-text-secondary mb-1">亮部</label>
+                <input type="color" id="light-color" value="#ffffff" class="w-full h-10 rounded cursor-pointer bg-transparent" />
+              </div>
+            </div>
+          </section>
+
+          <!-- Noise Type -->
+          <section>
+            <label class="block text-sm font-medium mb-2">噪点类型</label>
+            <select id="noise-type" class="w-full bg-bg-tertiary border border-bg-tertiary rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
+              <option value="grayscale">灰度噪点</option>
+              <option value="rgb">RGB 彩色噪点 (CRT效果)</option>
+            </select>
+          </section>
+
+          <!-- Noise Amount -->
+          <section>
+            <label class="block text-sm font-medium mb-2">
+              噪点强度 <span id="noise-value" class="text-accent">0%</span>
+            </label>
+            <input type="range" id="noise" min="0" max="100" value="0" class="w-full accent-accent" />
+          </section>
+
+          <!-- Actions -->
+          <section class="flex gap-2 pt-4 border-t border-bg-tertiary">
+            <button id="reset-btn" class="flex-1 px-4 py-2 bg-bg-tertiary rounded hover:bg-red-600 transition-colors text-sm">
+              重置参数
+            </button>
+            <button id="download-btn" class="flex-1 px-4 py-2 bg-accent text-black rounded hover:bg-accent-hover transition-colors text-sm font-medium">
+              下载图片
+            </button>
+          </section>
+
+          <!-- Export Options -->
+          <section id="export-options" class="hidden space-y-3 p-3 bg-bg-tertiary rounded">
+            <div>
+              <label class="block text-xs text-text-secondary mb-1">格式</label>
+              <select id="export-format" class="w-full bg-bg-secondary border border-bg-tertiary rounded px-2 py-1 text-sm">
+                <option value="png">PNG</option>
+                <option value="jpeg">JPEG</option>
+                <option value="webp">WebP</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs text-text-secondary mb-1">缩放</label>
+              <select id="export-scale" class="w-full bg-bg-secondary border border-bg-tertiary rounded px-2 py-1 text-sm">
+                <option value="1">1x (原始)</option>
+                <option value="2">2x</option>
+                <option value="4">4x</option>
+              </select>
+            </div>
+            <button id="confirm-download-btn" class="w-full px-4 py-2 bg-accent text-black rounded hover:bg-accent-hover transition-colors text-sm font-medium">
+              确认下载
+            </button>
+          </section>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
