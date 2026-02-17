@@ -1,4 +1,4 @@
-export type DitherAlgorithm = 'bayer' | 'floyd-steinberg' | 'atkinson' | 'jarvis';
+export type DitherAlgorithm = 'bayer' | 'none';
 export type MatrixSize = 2 | 4 | 8 | 16 | 32;
 export type ExportFormat = 'png' | 'jpeg' | 'webp';
 export type ExportScale = 1 | 2 | 4;
@@ -11,16 +11,28 @@ export interface DitherParams {
   algorithm: DitherAlgorithm;
   matrixSize: MatrixSize;
   threshold: number;
-  darkColor: string;
-  lightColor: string;
+
+  // Bloom parameters
+  bloomThreshold: number;
+  bloomIntensity: number;
+  bloomRadius: number;
+
+  // Palette System
+  palette: string[]; // Array of hex colors
+
+  // Legacy support (optional)
+  darkColor?: string;
+  lightColor?: string;
+
   noiseType: NoiseType;
   noiseAmount: number;
 }
 
 export interface Preset {
   name: string;
-  darkColor: string;
-  lightColor: string;
+  palette: string[];
+  bloomThreshold?: number;
+  bloomIntensity?: number;
   noiseType?: NoiseType;
   noiseAmount?: number;
 }

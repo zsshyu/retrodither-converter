@@ -1,26 +1,32 @@
 import type { Preset } from '../types';
 
 export const PRESETS: Preset[] = [
-  { name: 'Classic B&W', darkColor: '#000000', lightColor: '#ffffff' },
-  { name: 'Macintosh', darkColor: '#000000', lightColor: '#f5f5dc' },
-  { name: 'Amber Terminal', darkColor: '#000000', lightColor: '#ffb000' },
-  { name: 'Green Phosphor', darkColor: '#000000', lightColor: '#33ff33' },
-  { name: 'Blueprint', darkColor: '#1a237e', lightColor: '#ffffff' },
-  { name: 'Neon Cyan', darkColor: '#000000', lightColor: '#00ffff' },
-  { name: 'Sepia', darkColor: '#3d2914', lightColor: '#f4e4bc' },
-  { name: 'Sunset', darkColor: '#1a0a2e', lightColor: '#ff6b35' },
   {
-    name: 'CRT Blue',
-    darkColor: '#0a1628',
-    lightColor: '#a8d4ff',
-    noiseType: 'rgb',
-    noiseAmount: 25
+    name: 'Retro Blue',
+    palette: ['#051b2c', '#203a55', '#577590', '#b9d6ef'],
+    bloomThreshold: 180,
+    bloomIntensity: 50,
+    noiseType: 'grayscale',
+    noiseAmount: 15
   },
   {
-    name: 'CRT Green',
-    darkColor: '#0a1a0a',
-    lightColor: '#90ee90',
-    noiseType: 'rgb',
-    noiseAmount: 20
+    name: 'Classic B&W',
+    palette: ['#000000', '#ffffff']
+  },
+  {
+    name: 'GameBoy Green',
+    palette: ['#0f380f', '#306230', '#8bac0f', '#9bbc0f']
+  },
+  {
+    name: 'Amber Terminal',
+    palette: ['#000000', '#332200', '#cc8800', '#ffb000']
+  },
+  {
+    name: 'Sunset',
+    palette: ['#1a0000', '#661a00', '#cc3300', '#ff6633']
+  },
+  {
+    name: 'Neon Cyan',
+    palette: ['#000000', '#004444', '#00aaaa', '#00ffff']
   },
 ];

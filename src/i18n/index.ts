@@ -17,12 +17,12 @@ export interface Translations {
   tint: string;
   algorithm: string;
   bayerOrdered: string;
-  floydSteinberg: string;
-  atkinsonHigh: string;
-  jarvisSmooth: string;
+  none: string; // New
   matrixSize: string;
   threshold: string;
+  ditherBias: string;
   colors: string;
+  palette: string;
   darkColor: string;
   lightColor: string;
   noiseType: string;
@@ -36,6 +36,17 @@ export interface Translations {
   scaleOriginal: string;
   confirmDownload: string;
   imageSizeError: string;
+
+  // Bloom
+  bloomEffect: string;
+  bloomIntensity: string;
+  bloomThreshold: string;
+  bloomRadius: string;
+
+  // Sections
+  adjustments: string;
+  dithering: string;
+  noise: string;
 }
 
 export const translations: Record<Language, Translations> = {
@@ -56,12 +67,12 @@ export const translations: Record<Language, Translations> = {
     tint: 'Tint (渐变色调)',
     algorithm: '抖动算法',
     bayerOrdered: 'Bayer (有序抖动)',
-    floydSteinberg: 'Floyd-Steinberg (误差扩散)',
-    atkinsonHigh: 'Atkinson (高对比度)',
-    jarvisSmooth: 'Jarvis (平滑过渡)',
+    none: '无 (不抖动)',
     matrixSize: '矩阵尺寸',
     threshold: '阈值',
+    ditherBias: '抖动偏差',
     colors: '颜色',
+    palette: '调色板',
     darkColor: '暗部',
     lightColor: '亮部',
     noiseType: '噪点类型',
@@ -74,7 +85,16 @@ export const translations: Record<Language, Translations> = {
     scale: '缩放',
     scaleOriginal: '原始',
     confirmDownload: '确认下载',
-    imageSizeError: '图片尺寸超过限制 (最大 4096x4096)'
+    imageSizeError: '图片尺寸超过限制 (最大 4096x4096)',
+
+    bloomEffect: '泛光效果 (Bloom)',
+    bloomIntensity: '强度',
+    bloomThreshold: '阈值',
+    bloomRadius: '半径',
+
+    adjustments: '基础调整',
+    dithering: '抖动设置',
+    noise: '噪点设置'
   },
   en: {
     subtitle: 'Retro Dither Style Generator',
@@ -93,12 +113,12 @@ export const translations: Record<Language, Translations> = {
     tint: 'Tint (Gradient)',
     algorithm: 'Dither Algorithm',
     bayerOrdered: 'Bayer (Ordered)',
-    floydSteinberg: 'Floyd-Steinberg (Error Diffusion)',
-    atkinsonHigh: 'Atkinson (High Contrast)',
-    jarvisSmooth: 'Jarvis (Smooth)',
+    none: 'None (No Dithering)',
     matrixSize: 'Matrix Size',
     threshold: 'Threshold',
+    ditherBias: 'Dither Bias',
     colors: 'Colors',
+    palette: 'Palette',
     darkColor: 'Dark',
     lightColor: 'Light',
     noiseType: 'Noise Type',
@@ -111,7 +131,16 @@ export const translations: Record<Language, Translations> = {
     scale: 'Scale',
     scaleOriginal: 'Original',
     confirmDownload: 'Confirm Download',
-    imageSizeError: 'Image size exceeds limit (max 4096x4096)'
+    imageSizeError: 'Image size exceeds limit (max 4096x4096)',
+
+    bloomEffect: 'Bloom Effect',
+    bloomIntensity: 'Intensity',
+    bloomThreshold: 'Threshold',
+    bloomRadius: 'Radius',
+
+    adjustments: 'Adjustments',
+    dithering: 'Dithering',
+    noise: 'Noise'
   },
   fr: {
     subtitle: 'Générateur de Style Rétro Dither',
@@ -130,12 +159,12 @@ export const translations: Record<Language, Translations> = {
     tint: 'Teinte (Dégradé)',
     algorithm: 'Algorithme de tramage',
     bayerOrdered: 'Bayer (Ordonné)',
-    floydSteinberg: 'Floyd-Steinberg (Diffusion d\'erreur)',
-    atkinsonHigh: 'Atkinson (Contraste élevé)',
-    jarvisSmooth: 'Jarvis (Lisse)',
+    none: 'Aucun (Pas de tramage)',
     matrixSize: 'Taille de matrice',
     threshold: 'Seuil',
+    ditherBias: 'Biais de tramage',
     colors: 'Couleurs',
+    palette: 'Palette',
     darkColor: 'Sombre',
     lightColor: 'Clair',
     noiseType: 'Type de bruit',
@@ -148,7 +177,16 @@ export const translations: Record<Language, Translations> = {
     scale: 'Échelle',
     scaleOriginal: 'Original',
     confirmDownload: 'Confirmer',
-    imageSizeError: 'La taille de l\'image dépasse la limite (max 4096x4096)'
+    imageSizeError: 'La taille de l\'image dépasse la limite (max 4096x4096)',
+
+    bloomEffect: 'Effet Bloom',
+    bloomIntensity: 'Intensité',
+    bloomThreshold: 'Seuil',
+    bloomRadius: 'Rayon',
+
+    adjustments: 'Réglages',
+    dithering: 'Tramage',
+    noise: 'Bruit'
   }
 };
 

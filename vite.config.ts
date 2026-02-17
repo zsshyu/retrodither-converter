@@ -2,15 +2,22 @@ import { defineConfig } from 'vite'
 import { viteSingleFile } from 'vite-plugin-singlefile'
 
 export default defineConfig({
-  base: './',
+  root: './',
+  base: './', // Important for itch.io
   plugins: [viteSingleFile()],
   build: {
-    target: 'es2015',
+    target: 'esnext',
+    assetsInlineLimit: 100000000, // Force inline
+    chunkSizeWarningLimit: 100000000,
     cssCodeSplit: false,
-    assetsInlineLimit: 100000000
+    rollupOptions: {
+      output: {
+        inlineDynamicImports: true,
+        manualChunks: undefined,
+      },
+    },
   },
   worker: {
-    format: 'iife',
-    plugins: () => []
+    format: 'iife'
   }
 })

@@ -1,26 +1,43 @@
 import { hexToRgb } from '../utils/color';
 
-// Map grayscale to two colors based on dithered black/white
-export function mapToColors(
+// Map grayscale to a palette of colors
+export function mapToPalette(
   imageData: ImageData,
-  darkColor: string,
-  lightColor: string
+  palette: string[]
 ): ImageData {
   const { width, height, data } = imageData;
   const result = new ImageData(width, height);
   const resultData = result.data;
 
-  const dark = hexToRgb(darkColor);
-  const light = hexToRgb(lightColor);
+  // Convert hex palette to RGB objects
+  const rgbPalette = palette.map(hex => hexToRgb(hex));
+
+  // Create a Lookup Table (LUT) for 0-255 grayscale values
+  const lut = new Uint8ClampedArray(256 * 3); // R, G, B for each gray level
+
+  for (let i = 0; i < 256; i++) {
+    // Normalize 0-255 to 0-(palette.length - 1)
+    const position = (i / 255) * (rgbPalette.length - 1);
+    const index = Math.floor(position);
+    const nextIndex = Math.min(rgbPalette.length - 1, index + 1);
+    const t = position - index; // Interpolation factor
+
+    // Linear interpolation
+    const c1 = rgbPalette[index];
+    const c2 = rgbPalette[nextIndex];
+
+    lut[i * 3] = c1.r + (c2.r - c1.r) * t;
+    lut[i * 3 + 1] = c1.g + (c2.g - c1.g) * t;
+    lut[i * 3 + 2] = c1.b + (c2.b - c1.b) * t;
+  }
 
   for (let i = 0; i < data.length; i += 4) {
-    // After dithering, pixels are either 0 or 255
-    const isLight = data[i] > 127;
-    const color = isLight ? light : dark;
+    // Input is grayscale, so R=G=B. We use R.
+    const gray = data[i];
 
-    resultData[i] = color.r;
-    resultData[i + 1] = color.g;
-    resultData[i + 2] = color.b;
+    resultData[i] = lut[gray * 3];
+    resultData[i + 1] = lut[gray * 3 + 1];
+    resultData[i + 2] = lut[gray * 3 + 2];
     resultData[i + 3] = 255;
   }
 

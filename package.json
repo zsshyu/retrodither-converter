@@ -1,6 +1,6 @@
 {
   "name": "retrodither-converter",
-  "version": "1.0.0",
+  "version": "1.5.0",
   "description": "复古抖动风格图片生成器 - Retro Dither Style Image Converter",
   "type": "module",
   "scripts": {

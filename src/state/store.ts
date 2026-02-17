@@ -3,14 +3,25 @@ import type { AppState, DitherParams } from '../types';
 type Listener = () => void;
 
 const DEFAULT_PARAMS: DitherParams = {
-  pixelSize: 4,
+  pixelSize: 1,
   brightness: 0,
   contrast: 20,
   algorithm: 'bayer',
   matrixSize: 4,
   threshold: 128,
+
+  // Bloom defaults
+  bloomThreshold: 180,
+  bloomIntensity: 0,
+  bloomRadius: 4,
+
+  // Palette default: Retro Blue
+  palette: ['#051b2c', '#203a55', '#577590', '#b9d6ef'],
+
+  // Legacy
   darkColor: '#000000',
   lightColor: '#ffffff',
+
   noiseType: 'grayscale',
   noiseAmount: 0
 };
@@ -57,7 +68,10 @@ class Store {
   }
 
   resetParams(): void {
-    this.state = { ...this.state, params: { ...DEFAULT_PARAMS } };
+    this.state = {
+      ...this.state,
+      params: { ...DEFAULT_PARAMS }
+    };
     this.notify();
   }
 

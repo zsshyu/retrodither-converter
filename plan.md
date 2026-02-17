@@ -6,8 +6,8 @@
 
 **技术选型确认：**
 - 框架：Vanilla JS + TypeScript（轻量、零框架开销）
-- 抖动算法：完整版（Bayer + Floyd-Steinberg + Atkinson + Jarvis）
-- 调色板：双色 (Duotone) + 色调渐变映射 (Tint/Colorize)
+- 抖动算法：Bayer (有序抖动) + None (无抖动)
+- 调色板：自定义 2-4 色调色板
 
 ---
 
@@ -97,12 +97,12 @@
 
 | 参数 | 范围 | 默认值 | 步进 |
 |------|------|--------|------|
-| Pixel Size | 1-32 px | 4 px | 1 |
+| Pixel Size | 1-32 px | 1 px | 1 |
 | Brightness | -100 ~ +100 | 0 | 1 |
 | Contrast | -100 ~ +200 | 20 | 1 |
 | Matrix Size | 2x2, 4x4, 8x8 | 4x4 | - |
 | Threshold | 0-255 | 128 | 1 |
-| **Color Mode** | Duotone / Tint | Duotone | - |
+| **Palette Colors** | 2-4 | 4 | - |
 | **Noise Type** | Grayscale / RGB | Grayscale | - |
 | Noise Amount | 0-100% | 0% | 1 |
 
@@ -347,7 +347,7 @@ function addRgbNoise(imageData: ImageData, amount: number): ImageData {
 
 ## 8. 当前项目状态
 
-**版本：** v1.4.1
+**版本：** v1.8.2
 **最后更新：** 2026-02-17
 **构建状态：** ✅ 通过
 
@@ -356,16 +356,16 @@ function addRgbNoise(imageData: ImageData, amount: number): ImageData {
 | 功能 | 状态 | 说明 |
 |------|------|------|
 | 图片上传 | ✅ | 支持拖拽和点击上传 |
-| 像素化 | ✅ | 1-32px 可调 |
+| 像素化 | ✅ | 1-32px 可调，默认 1px |
 | 亮度/对比度 | ✅ | -100 ~ +200 (扩展范围支持过曝效果) |
 | Bayer 抖动 | ✅ | 2x2, 4x4, 8x8, 16x16, 32x32 矩阵 |
-| Floyd-Steinberg | ✅ | 误差扩散 |
-| Atkinson | ✅ | 高对比度 |
-| Jarvis | ✅ | 平滑过渡 |
+| None (无抖动) | ✅ | 直接映射到调色板 |
+| 泛光效果 (Bloom) | ✅ | 可调强度、阈值、半径 |
+| 自定义调色板 | ✅ | 2-4 色，颜色选择器 + HEX 显示 |
 | Duotone 映射 | ✅ | 硬性双色 |
 | 灰度噪点 | ✅ | 胶片颗粒效果 |
 | RGB 噪点 | ✅ | CRT 彩色效果 |
-| 预设系统 | ✅ | 10 个预设 |
+| 预设系统 | ✅ | 6 个预设 (Retro Blue, Classic B&W, GameBoy Green, Amber Terminal, Sunset, Neon Cyan) |
 | 原图对比 | ✅ | 按住显示，居中对齐 |
 | 图片导出 | ✅ | PNG/JPEG/WebP, 1x/2x/4x |
 | Web Worker | ✅ | 后台处理 |
@@ -373,6 +373,7 @@ function addRgbNoise(imageData: ImageData, amount: number): ImageData {
 | UI 风格优化 | ✅ | 复古打字机字体、亮灰白配色 |
 | 国际化 (i18n) | ✅ | 中文、英文、法语支持 |
 | WYSIWYG | ✅ | 预览与下载完全一致 |
+| itch.io 部署 | ✅ | 单文件构建 + zip 打包 |
 
 ### 待实现功能
 
