@@ -23,23 +23,12 @@ function processImage(imageData: ImageData, params: DitherParams): ImageData {
   // 3. Convert to grayscale
   result = toGrayscale(result);
 
-  // 4. For Tint mode: skip dithering, apply color mapping directly with noise
-  if (params.colorMode === 'tint') {
-    // Apply color mapping first (preserves grayscale levels)
-    result = mapToColors(result, params.darkColor, params.lightColor, 'tint');
-    // Add noise after color mapping for CRT effect
-    if (params.noiseAmount > 0) {
-      result = addNoise(result, params.noiseAmount, params.noiseType);
-    }
-    return result;
-  }
-
-  // 5. For Duotone mode: add noise before dithering
+  // 4. Add grayscale noise before dithering
   if (params.noiseAmount > 0 && params.noiseType === 'grayscale') {
     result = addNoise(result, params.noiseAmount, 'grayscale');
   }
 
-  // 6. Apply dithering algorithm
+  // 5. Apply dithering algorithm
   switch (params.algorithm) {
     case 'bayer':
       result = bayerDither(result, params.matrixSize, params.threshold);
@@ -55,10 +44,10 @@ function processImage(imageData: ImageData, params: DitherParams): ImageData {
       break;
   }
 
-  // 7. Map to colors (duotone)
-  result = mapToColors(result, params.darkColor, params.lightColor, 'duotone');
+  // 6. Map to colors (duotone)
+  result = mapToColors(result, params.darkColor, params.lightColor);
 
-  // 8. Add RGB noise after color mapping for duotone mode
+  // 7. Add RGB noise after color mapping
   if (params.noiseAmount > 0 && params.noiseType === 'rgb') {
     result = addNoise(result, params.noiseAmount, 'rgb');
   }

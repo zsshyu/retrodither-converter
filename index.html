@@ -39,9 +39,11 @@
 
         <!-- Canvas Area (shown when image loaded) -->
         <div id="canvas-area" class="hidden flex-1 flex flex-col min-h-[200px]">
-          <div class="flex-1 relative overflow-auto bg-bg-secondary rounded-lg flex items-center justify-center min-h-[150px]">
-            <canvas id="preview-canvas" class="max-w-full max-h-full"></canvas>
-            <canvas id="original-canvas" class="hidden absolute max-w-full max-h-full"></canvas>
+          <div id="canvas-container" class="flex-1 relative overflow-auto bg-bg-secondary rounded-lg min-h-[150px] flex items-center justify-center">
+            <div id="canvas-wrapper" class="relative">
+              <canvas id="preview-canvas"></canvas>
+              <canvas id="original-canvas" class="hidden absolute top-0 left-0"></canvas>
+            </div>
             <!-- Loading Overlay -->
             <div id="loading-overlay" class="hidden absolute inset-0 bg-black/50 flex items-center justify-center">
               <div class="text-center">
@@ -97,16 +99,9 @@
             <input type="range" id="contrast" min="-100" max="200" value="20" class="w-full accent-accent" />
           </section>
 
-          <!-- Color Mode -->
-          <section>
-            <label id="label-color-mode" class="block text-sm font-medium mb-2">Color Mode</label>
-            <select id="color-mode" class="w-full bg-bg-tertiary border border-bg-tertiary rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
-              <option value="duotone" id="option-duotone">Duotone</option>
-              <option value="tint" id="option-tint">Tint (Gradient)</option>
-            </select>
-          </section>
+          <!-- Color Mode - removed -->
 
-          <!-- Algorithm (only for Duotone) -->
+          <!-- Algorithm -->
           <section id="algorithm-section">
             <label id="label-algorithm" class="block text-sm font-medium mb-2">Dither Algorithm</label>
             <select id="algorithm" class="w-full bg-bg-tertiary border border-bg-tertiary rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">

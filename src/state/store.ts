@@ -9,7 +9,6 @@ const DEFAULT_PARAMS: DitherParams = {
   algorithm: 'bayer',
   matrixSize: 4,
   threshold: 128,
-  colorMode: 'duotone',
   darkColor: '#000000',
   lightColor: '#ffffff',
   noiseType: 'grayscale',

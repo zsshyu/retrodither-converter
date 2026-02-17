@@ -347,7 +347,7 @@ function addRgbNoise(imageData: ImageData, amount: number): ImageData {
 
 ## 8. 当前项目状态
 
-**版本：** v1.3.0
+**版本：** v1.4.0
 **最后更新：** 2026-02-17
 **构建状态：** ✅ 通过
 
@@ -363,16 +363,16 @@ function addRgbNoise(imageData: ImageData, amount: number): ImageData {
 | Atkinson | ✅ | 高对比度 |
 | Jarvis | ✅ | 平滑过渡 |
 | Duotone 映射 | ✅ | 硬性双色 |
-| Tint 映射 | ✅ | 渐变色调 |
 | 灰度噪点 | ✅ | 胶片颗粒效果 |
 | RGB 噪点 | ✅ | CRT 彩色效果 |
-| 预设系统 | ✅ | 12 个预设 |
-| 原图对比 | ✅ | 按住显示 |
+| 预设系统 | ✅ | 10 个预设 |
+| 原图对比 | ✅ | 按住显示，居中对齐 |
 | 图片导出 | ✅ | PNG/JPEG/WebP, 1x/2x/4x |
 | Web Worker | ✅ | 后台处理 |
 | 响应式布局 | ✅ | 桌面/移动端，小屏幕适配优化 |
 | UI 风格优化 | ✅ | 复古打字机字体、亮灰白配色 |
 | 国际化 (i18n) | ✅ | 中文、英文、法语支持 |
+| WYSIWYG | ✅ | 预览与下载完全一致 |
 
 ### 待实现功能
 

@@ -12,6 +12,16 @@ export function imageToCanvas(img: HTMLImageElement): HTMLCanvasElement {
   return canvas;
 }
 
+export function imageToCanvasScaled(img: HTMLImageElement, maxWidth: number, maxHeight: number): HTMLCanvasElement {
+  const scale = Math.min(1, maxWidth / img.naturalWidth, maxHeight / img.naturalHeight);
+  const width = Math.round(img.naturalWidth * scale);
+  const height = Math.round(img.naturalHeight * scale);
+  const canvas = createCanvas(width, height);
+  const ctx = canvas.getContext('2d')!;
+  ctx.drawImage(img, 0, 0, width, height);
+  return canvas;
+}
+
 export function getImageData(canvas: HTMLCanvasElement): ImageData {
   const ctx = canvas.getContext('2d')!;
   return ctx.getImageData(0, 0, canvas.width, canvas.height);

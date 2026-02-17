@@ -2,14 +2,15 @@ import './style.css';
 import { store } from './state/store';
 import { PRESETS } from './constants/presets';
 import { debounce } from './utils/debounce';
-import { imageToCanvas, getImageData, putImageData, scaleImageNearestNeighbor } from './utils/canvas';
-import type { DitherAlgorithm, MatrixSize, ExportFormat, ExportScale, WorkerResponse, ColorMode, NoiseType } from './types';
-import ImageProcessorWorker from './workers/imageProcessor.worker?worker';
+import { imageToCanvasScaled, getImageData, putImageData, scaleImageNearestNeighbor } from './utils/canvas';
+import type { DitherAlgorithm, MatrixSize, ExportFormat, ExportScale, WorkerResponse, NoiseType } from './types';
+import ImageProcessorWorker from './workers/imageProcessor.worker?worker&inline';
 import { translations, getLanguage, setLanguage, type Language } from './i18n';
 
 // DOM Elements
 const uploadArea = document.getElementById('upload-area')!;
 const canvasArea = document.getElementById('canvas-area')!;
+const canvasContainer = document.getElementById('canvas-container')!;
 const fileInput = document.getElementById('file-input') as HTMLInputElement;
 const previewCanvas = document.getElementById('preview-canvas') as HTMLCanvasElement;
 const originalCanvas = document.getElementById('original-canvas') as HTMLCanvasElement;
@@ -20,12 +21,9 @@ const presetSelect = document.getElementById('preset-select') as HTMLSelectEleme
 const pixelSizeInput = document.getElementById('pixel-size') as HTMLInputElement;
 const brightnessInput = document.getElementById('brightness') as HTMLInputElement;
 const contrastInput = document.getElementById('contrast') as HTMLInputElement;
-const colorModeSelect = document.getElementById('color-mode') as HTMLSelectElement;
-const algorithmSection = document.getElementById('algorithm-section')!;
 const algorithmSelect = document.getElementById('algorithm') as HTMLSelectElement;
 const matrixSection = document.getElementById('matrix-section')!;
 const matrixSizeSelect = document.getElementById('matrix-size') as HTMLSelectElement;
-const thresholdSection = document.getElementById('threshold-section')!;
 const thresholdInput = document.getElementById('threshold') as HTMLInputElement;
 const darkColorInput = document.getElementById('dark-color') as HTMLInputElement;
 const lightColorInput = document.getElementById('light-color') as HTMLInputElement;
@@ -71,9 +69,6 @@ function applyLanguage(lang: Language): void {
   document.getElementById('label-pixel-size')!.textContent = t.pixelSize;
   document.getElementById('label-brightness')!.textContent = t.brightness;
   document.getElementById('label-contrast')!.textContent = t.contrast;
-  document.getElementById('label-color-mode')!.textContent = t.colorMode;
-  document.getElementById('option-duotone')!.textContent = t.duotone;
-  document.getElementById('option-tint')!.textContent = t.tint;
   document.getElementById('label-algorithm')!.textContent = t.algorithm;
   document.getElementById('option-bayer')!.textContent = t.bayerOrdered;
   document.getElementById('option-floyd')!.textContent = t.floydSteinberg;
@@ -125,17 +120,10 @@ function loadImage(file: File): void {
       uploadArea.classList.add('hidden');
       canvasArea.classList.remove('hidden');
 
-      // Draw original to hidden canvas
-      const origCanvas = imageToCanvas(img);
-      originalCanvas.width = origCanvas.width;
-      originalCanvas.height = origCanvas.height;
-      originalCanvas.getContext('2d')!.drawImage(origCanvas, 0, 0);
-
-      // Set preview canvas size
-      previewCanvas.width = img.naturalWidth;
-      previewCanvas.height = img.naturalHeight;
-
-      processImage();
+      // Wait for layout to calculate container size
+      requestAnimationFrame(() => {
+        processImage();
+      });
     };
     img.src = e.target?.result as string;
   };
@@ -150,9 +138,21 @@ function processImage(): void {
   store.setProcessing(true);
   loadingOverlay.classList.remove('hidden');
 
-  // Get original image data
-  const canvas = imageToCanvas(state.originalImage);
-  const imageData = getImageData(canvas);
+  // Get container size for WYSIWYG
+  const containerRect = canvasContainer.getBoundingClientRect();
+  const maxWidth = containerRect.width - 20; // padding
+  const maxHeight = containerRect.height - 20;
+
+  // Scale image to fit container (WYSIWYG)
+  const scaledCanvas = imageToCanvasScaled(state.originalImage, maxWidth, maxHeight);
+  const imageData = getImageData(scaledCanvas);
+
+  // Set canvas size to scaled size
+  previewCanvas.width = scaledCanvas.width;
+  previewCanvas.height = scaledCanvas.height;
+  originalCanvas.width = scaledCanvas.width;
+  originalCanvas.height = scaledCanvas.height;
+  originalCanvas.getContext('2d')!.drawImage(scaledCanvas, 0, 0);
 
   // Create worker if needed
   if (!worker) {
@@ -176,15 +176,10 @@ function processImage(): void {
 
 const debouncedProcess = debounce(processImage, 100);
 
-// Update visibility of dither-related controls based on color mode
-function updateDitherControlsVisibility(): void {
+// Update visibility of matrix section based on algorithm
+function updateMatrixVisibility(): void {
   const params = store.getParams();
-  const isTint = params.colorMode === 'tint';
-
-  // Hide dither controls in Tint mode
-  algorithmSection.style.display = isTint ? 'none' : 'block';
-  matrixSection.style.display = (!isTint && params.algorithm === 'bayer') ? 'block' : 'none';
-  thresholdSection.style.display = isTint ? 'none' : 'block';
+  matrixSection.style.display = params.algorithm === 'bayer' ? 'block' : 'none';
 }
 
 // Update UI from state
@@ -200,7 +195,6 @@ function updateUI(): void {
   contrastInput.value = String(params.contrast);
   contrastValue.textContent = String(params.contrast);
 
-  colorModeSelect.value = params.colorMode;
   algorithmSelect.value = params.algorithm;
   matrixSizeSelect.value = String(params.matrixSize);
 
@@ -214,7 +208,7 @@ function updateUI(): void {
   noiseInput.value = String(params.noiseAmount);
   noiseValue.textContent = `${params.noiseAmount}%`;
 
-  updateDitherControlsVisibility();
+  updateMatrixVisibility();
 }
 
 // Event Listeners
@@ -247,7 +241,6 @@ presetSelect.addEventListener('change', () => {
     store.updateParams({
       darkColor: preset.darkColor,
       lightColor: preset.lightColor,
-      colorMode: preset.colorMode || 'duotone',
       noiseType: preset.noiseType || 'grayscale',
       noiseAmount: preset.noiseAmount ?? 0
     });
@@ -272,13 +265,6 @@ brightnessInput.addEventListener('input', () => {
 contrastInput.addEventListener('input', () => {
   store.updateParams({ contrast: parseInt(contrastInput.value) });
   contrastValue.textContent = contrastInput.value;
-  debouncedProcess();
-});
-
-colorModeSelect.addEventListener('change', () => {
-  store.updateParams({ colorMode: colorModeSelect.value as ColorMode });
-  updateDitherControlsVisibility();
-  presetSelect.value = '';
   debouncedProcess();
 });
 
