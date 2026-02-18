@@ -484,6 +484,10 @@ Favicon: 黑色矩形 + 斜线穿过
 | 2000x2000 | < 500ms |
 | 4000x4000 | < 2000ms |
 
+**补充说明（2026-02-18）：**
+- 参数变化时的处理应尽量复用已缩放后的基准图像数据，避免每次重绘/重取像素造成卡顿
+- Bloom 的模糊实现需要避免 O(radius * width * height) 的朴素实现，优先采用滑动窗口优化
+
 ### 5.3 兼容性验证
 
 - Chrome 90+
@@ -503,6 +507,7 @@ Favicon: 黑色矩形 + 斜线穿过
 | 颜色选择器兼容性 | 功能缺失 | 使用原生 input[type=color] + 自定义 UI |
 | Worker 通信开销 | 延迟增加 | 使用 Transferable Objects |
 | Worker 回包乱序/过期结果覆盖 | 预览闪烁、参数无效感 | requestId 丢弃过期结果 + 合并请求（in-flight 仅保留最后一次） |
+| 频繁参数变化重缩放/重取像素 | 交互拖拽卡顿、CPU 占用高 | 缓存缩放后的基准 ImageData，仅在容器尺寸变化时重建（ResizeObserver） |
 
 ---
 
@@ -514,3 +519,11 @@ Favicon: 黑色矩形 + 斜线穿过
 - 分享到社交媒体
 - 多色调色板支持（4/8/16色）
 - 更多噪点混合模式（Overlay, Screen, Multiply）
+
+---
+
+## 8. 发布前检查清单（2026-02-18 补充）
+
+- 透明 PNG 输入：输出应保留 alpha（透明背景不被强制填充为不透明）
+- 移动端：对比按钮支持触控按住（pointer events）
+- 单文件构建：`dist/index.html` 包含本次更新逻辑（缓存基准 ImageData、ResizeObserver、滑动窗口 box blur）

@@ -8,6 +8,7 @@ import ImageProcessorWorker from './workers/imageProcessor.worker?worker&inline'
 import { translations, getLanguage, setLanguage, type Language } from './i18n';
 
 const MAX_IMAGE_DIMENSION = 4096;
+const CANVAS_PADDING = 20;
 
 // DOM Elements
 const uploadArea = document.getElementById('upload-area')!;
@@ -81,6 +82,10 @@ let queuedRequest: { requestId: number; imageData: ImageData; params: DitherPara
 
 let activeTranslations = translations[getLanguage()];
 
+// Cached base image (WYSIWYG): rebuilt only when image changes or container size changes.
+let baseImageData: ImageData | null = null;
+let baseRebuildScheduled = false;
+
 // Apply language translations
 function applyLanguage(lang: Language): void {
   activeTranslations = translations[lang];
@@ -145,6 +150,44 @@ function applyLanguage(lang: Language): void {
 
   // Update language selector
   languageSelect.value = lang;
+}
+
+function rebuildBaseImageData(): boolean {
+  const state = store.getState();
+  if (!state.originalImage) return false;
+
+  const containerRect = canvasContainer.getBoundingClientRect();
+  const maxWidth = Math.floor(containerRect.width - CANVAS_PADDING);
+  const maxHeight = Math.floor(containerRect.height - CANVAS_PADDING);
+
+  if (maxWidth < 1 || maxHeight < 1) return false;
+
+  const scaledCanvas = imageToCanvasScaled(state.originalImage, maxWidth, maxHeight);
+  baseImageData = getImageData(scaledCanvas);
+
+  // Set canvas size to scaled size (WYSIWYG)
+  previewCanvas.width = scaledCanvas.width;
+  previewCanvas.height = scaledCanvas.height;
+  originalCanvas.width = scaledCanvas.width;
+  originalCanvas.height = scaledCanvas.height;
+  originalCanvas.getContext('2d')!.drawImage(scaledCanvas, 0, 0);
+
+  return true;
+}
+
+function ensureBaseImageData(): boolean {
+  if (baseImageData) return true;
+  return rebuildBaseImageData();
+}
+
+function scheduleBaseRebuildAndProcess(): void {
+  if (baseRebuildScheduled) return;
+  baseRebuildScheduled = true;
+  requestAnimationFrame(() => {
+    baseRebuildScheduled = false;
+    if (!rebuildBaseImageData()) return;
+    processImage();
+  });
 }
 
 function ensureWorker(): void {
@@ -212,11 +255,16 @@ function loadImage(file: File): void {
       }
 
       store.setImage(img);
+      baseImageData = null;
       uploadArea.classList.add('hidden');
       canvasArea.classList.remove('hidden');
 
       // Wait for layout to calculate container size
       requestAnimationFrame(() => {
+        if (!rebuildBaseImageData()) {
+          scheduleBaseRebuildAndProcess();
+          return;
+        }
         processImage();
       });
     };
@@ -229,26 +277,14 @@ function loadImage(file: File): void {
 function processImage(): void {
   const state = store.getState();
   if (!state.originalImage) return;
-
-  // Get container size for WYSIWYG
-  const containerRect = canvasContainer.getBoundingClientRect();
-  const maxWidth = containerRect.width - 20; // padding
-  const maxHeight = containerRect.height - 20;
-
-  // Scale image to fit container (WYSIWYG)
-  const scaledCanvas = imageToCanvasScaled(state.originalImage, maxWidth, maxHeight);
-  const imageData = getImageData(scaledCanvas);
-
-  // Set canvas size to scaled size
-  previewCanvas.width = scaledCanvas.width;
-  previewCanvas.height = scaledCanvas.height;
-  originalCanvas.width = scaledCanvas.width;
-  originalCanvas.height = scaledCanvas.height;
-  originalCanvas.getContext('2d')!.drawImage(scaledCanvas, 0, 0);
+  if (!ensureBaseImageData() || !baseImageData) {
+    scheduleBaseRebuildAndProcess();
+    return;
+  }
 
   const requestId = nextRequestId++;
   latestRequestedRequestId = requestId;
-  const payload = { requestId, imageData, params: state.params };
+  const payload = { requestId, imageData: baseImageData, params: state.params };
 
   if (inFlightRequestId !== 0) {
     queuedRequest = payload;
@@ -259,6 +295,16 @@ function processImage(): void {
 }
 
 const debouncedProcess = debounce(processImage, 100);
+const debouncedRebuildAndProcess = debounce(() => {
+  if (!store.getState().originalImage) return;
+  if (!rebuildBaseImageData()) return;
+  processImage();
+}, 100);
+
+const resizeObserver = new ResizeObserver(() => {
+  debouncedRebuildAndProcess();
+});
+resizeObserver.observe(canvasContainer);
 
 // Update visibility of matrix section based on algorithm
 function updateMatrixVisibility(): void {
@@ -467,15 +513,28 @@ noiseInput.addEventListener('input', () => {
   debouncedProcess();
 });
 
-// Compare button
-// Compare button
-compareBtn.addEventListener('mousedown', () => {
+// Compare button (mouse + touch)
+compareBtn.addEventListener('pointerdown', (e) => {
+  compareBtn.setPointerCapture(e.pointerId);
   originalCanvas.classList.remove('hidden');
 });
-compareBtn.addEventListener('mouseup', () => {
+compareBtn.addEventListener('pointerup', () => {
   originalCanvas.classList.add('hidden');
 });
-compareBtn.addEventListener('mouseleave', () => {
+compareBtn.addEventListener('pointercancel', () => {
+  originalCanvas.classList.add('hidden');
+});
+compareBtn.addEventListener('pointerleave', () => {
+  originalCanvas.classList.add('hidden');
+});
+compareBtn.addEventListener('keydown', (e: KeyboardEvent) => {
+  if (e.key !== ' ' && e.key !== 'Enter') return;
+  e.preventDefault();
+  originalCanvas.classList.remove('hidden');
+});
+compareBtn.addEventListener('keyup', (e: KeyboardEvent) => {
+  if (e.key !== ' ' && e.key !== 'Enter') return;
+  e.preventDefault();
   originalCanvas.classList.add('hidden');
 });
 

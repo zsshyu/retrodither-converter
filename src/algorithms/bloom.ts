@@ -1,4 +1,5 @@
 import { boxBlur } from '../utils/blur';
+import { getLuminance } from '../utils/color';
 
 export function applyBloom(
     imageData: ImageData,
@@ -16,16 +17,17 @@ export function applyBloom(
         const r = data[i];
         const g = data[i + 1];
         const b = data[i + 2];
+        const a = data[i + 3];
 
         // Calculate luminance
-        const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+        const lum = getLuminance(r, g, b);
 
         // Check threshold
-        if (lum >= threshold) {
+        if (a !== 0 && lum >= threshold) {
             highlightsData[i] = r;
             highlightsData[i + 1] = g;
             highlightsData[i + 2] = b;
-            highlightsData[i + 3] = 255;
+            highlightsData[i + 3] = a;
         } else {
             highlightsData[i] = 0;
             highlightsData[i + 1] = 0;
@@ -47,7 +49,7 @@ export function applyBloom(
         resultData[i] = Math.min(255, data[i] + blurredData[i] * intensity);
         resultData[i + 1] = Math.min(255, data[i + 1] + blurredData[i + 1] * intensity);
         resultData[i + 2] = Math.min(255, data[i + 2] + blurredData[i + 2] * intensity);
-        resultData[i + 3] = 255; // Full opacity
+        resultData[i + 3] = data[i + 3];
     }
 
     return result;

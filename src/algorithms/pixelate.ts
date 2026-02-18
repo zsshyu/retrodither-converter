@@ -11,7 +11,11 @@ export function pixelate(
 
   for (let y = 0; y < height; y += pixelSize) {
     for (let x = 0; x < width; x += pixelSize) {
-      let r = 0, g = 0, b = 0, count = 0;
+      let r = 0;
+      let g = 0;
+      let b = 0;
+      let a = 0;
+      let count = 0;
 
       // Average colors in the block
       for (let dy = 0; dy < pixelSize && y + dy < height; dy++) {
@@ -20,6 +24,7 @@ export function pixelate(
           r += data[idx];
           g += data[idx + 1];
           b += data[idx + 2];
+          a += data[idx + 3];
           count++;
         }
       }
@@ -27,6 +32,7 @@ export function pixelate(
       r = Math.round(r / count);
       g = Math.round(g / count);
       b = Math.round(b / count);
+      a = Math.round(a / count);
 
       // Fill the block with averaged color
       for (let dy = 0; dy < pixelSize && y + dy < height; dy++) {
@@ -35,7 +41,7 @@ export function pixelate(
           resultData[idx] = r;
           resultData[idx + 1] = g;
           resultData[idx + 2] = b;
-          resultData[idx + 3] = 255;
+          resultData[idx + 3] = a;
         }
       }
     }

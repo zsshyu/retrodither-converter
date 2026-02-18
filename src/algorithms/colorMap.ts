@@ -5,9 +5,7 @@ export function mapToPalette(
   imageData: ImageData,
   palette: string[]
 ): ImageData {
-  const { width, height, data } = imageData;
-  const result = new ImageData(width, height);
-  const resultData = result.data;
+  const { data } = imageData;
 
   // Convert hex palette to RGB objects
   const rgbPalette = palette.map(hex => hexToRgb(hex));
@@ -35,11 +33,10 @@ export function mapToPalette(
     // Input is grayscale, so R=G=B. We use R.
     const gray = data[i];
 
-    resultData[i] = lut[gray * 3];
-    resultData[i + 1] = lut[gray * 3 + 1];
-    resultData[i + 2] = lut[gray * 3 + 2];
-    resultData[i + 3] = 255;
+    data[i] = lut[gray * 3];
+    data[i + 1] = lut[gray * 3 + 1];
+    data[i + 2] = lut[gray * 3 + 2];
   }
 
-  return result;
+  return imageData;
 }

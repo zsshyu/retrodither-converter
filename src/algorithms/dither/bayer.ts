@@ -8,8 +8,6 @@ export function bayerDither(
   threshold: number // threshold is now used as a bias (0-255), defaults to 128
 ): ImageData {
   const { width, height, data } = imageData;
-  const result = new ImageData(width, height);
-  const resultData = result.data;
 
   const matrix = getBayerMatrix(matrixSize);
   const matrixMax = matrixSize * matrixSize;
@@ -46,12 +44,11 @@ export function bayerDither(
       // Clamping
       quantizedVal = Math.max(0, Math.min(255, quantizedVal));
 
-      resultData[idx] = quantizedVal;
-      resultData[idx + 1] = quantizedVal;
-      resultData[idx + 2] = quantizedVal;
-      resultData[idx + 3] = 255;
+      data[idx] = quantizedVal;
+      data[idx + 1] = quantizedVal;
+      data[idx + 2] = quantizedVal;
     }
   }
 
-  return result;
+  return imageData;
 }

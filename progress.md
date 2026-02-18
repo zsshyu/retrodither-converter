@@ -308,6 +308,11 @@ retrodither-converter/
 - [x] **预设切换稳定性**：避免把未配置的 Bloom 参数写入 `undefined` 导致状态异常（对未配置的预设默认关闭 Bloom）
 - [x] **i18n 一致性**：图片尺寸超过 4096x4096 时的提示改为使用 i18n 文案（`imageSizeError`），避免硬编码英文提示
 - [x] **Worker 结果一致性**：为每次处理请求引入 `requestId`，主线程仅渲染最新请求结果；in-flight 时合并请求（只保留最后一次参数变更）
+- [x] **交互性能（P1）**：缓存缩放后的基准 `ImageData`，参数变化时直接复用；仅在容器尺寸变化时通过 `ResizeObserver` 重建并重新处理
+- [x] **Bloom 性能（P1）**：`boxBlur` 改为滑动窗口实现（edge-clamp），避免朴素实现的高复杂度
+- [x] **Worker 内存（P1）**：调整/灰度/噪点/有序抖动/调色板映射改为 in-place 处理，降低 `ImageData` 反复分配的 GC 压力
+- [x] **透明通道（P2）**：处理链路保留 PNG alpha（不再强制写死为不透明）；像素化支持 alpha 平均
+- [x] **移动端/无障碍（P2）**：对比按钮改为 pointer events（触控按住）并补充键盘按住（Space/Enter）
 - [x] **单文件构建验证**：重新构建 `dist/index.html`，确保上述修复被内联打包进单一 HTML 文件
 
 #### 构建状态
@@ -319,7 +324,7 @@ retrodither-converter/
   - dist/index.html
 ```
 
-#### 待办（发布 v1.8.3）
+#### 待办（发布 v1.8.4）
 
-- [ ] 生成 `retrodither-converter-v1.8.3.zip`（仅包含 `index.html`）
+- [ ] 生成 `retrodither-converter-v1.8.4.zip`（仅包含 `index.html`）
 - [ ] 提交并推送 git（在执行前需要明确确认）
