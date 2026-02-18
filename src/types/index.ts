@@ -39,17 +39,20 @@ export interface Preset {
 
 export interface ProcessMessage {
   type: 'process';
+  requestId: number;
   imageData: ImageData;
   params: DitherParams;
 }
 
 export interface ProcessResult {
   type: 'result';
+  requestId: number;
   imageData: ImageData;
 }
 
 export interface ProgressMessage {
   type: 'progress';
+  requestId: number;
   percent: number;
 }
 

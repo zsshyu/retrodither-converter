@@ -69,11 +69,11 @@ function processImage(imageData: ImageData, params: DitherParams): ImageData {
 }
 
 self.onmessage = (e: MessageEvent<WorkerMessage>) => {
-  const { type, imageData, params } = e.data;
+  const { type, requestId, imageData, params } = e.data;
 
   if (type === 'process') {
     const result = processImage(imageData, params);
-    const response: WorkerResponse = { type: 'result', imageData: result };
+    const response: WorkerResponse = { type: 'result', requestId, imageData: result };
     self.postMessage(response);
   }
 };

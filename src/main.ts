@@ -3,9 +3,11 @@ import { store } from './state/store';
 import { PRESETS } from './constants/presets';
 import { debounce } from './utils/debounce';
 import { imageToCanvasScaled, getImageData, putImageData, scaleImageNearestNeighbor } from './utils/canvas';
-import type { DitherAlgorithm, MatrixSize, ExportFormat, ExportScale, WorkerResponse, NoiseType } from './types';
+import type { DitherAlgorithm, MatrixSize, ExportFormat, ExportScale, WorkerResponse, NoiseType, DitherParams } from './types';
 import ImageProcessorWorker from './workers/imageProcessor.worker?worker&inline';
 import { translations, getLanguage, setLanguage, type Language } from './i18n';
+
+const MAX_IMAGE_DIMENSION = 4096;
 
 // DOM Elements
 const uploadArea = document.getElementById('upload-area')!;
@@ -72,9 +74,16 @@ const languageSelect = document.getElementById('language-select') as HTMLSelectE
 
 // Worker
 let worker: Worker | null = null;
+let nextRequestId = 1;
+let inFlightRequestId = 0;
+let latestRequestedRequestId = 0;
+let queuedRequest: { requestId: number; imageData: ImageData; params: DitherParams } | null = null;
+
+let activeTranslations = translations[getLanguage()];
 
 // Apply language translations
 function applyLanguage(lang: Language): void {
+  activeTranslations = translations[lang];
   const t = translations[lang];
 
   // Structural elements
@@ -138,6 +147,48 @@ function applyLanguage(lang: Language): void {
   languageSelect.value = lang;
 }
 
+function ensureWorker(): void {
+  if (worker) return;
+
+  worker = new ImageProcessorWorker();
+  worker.onmessage = (e: MessageEvent<WorkerResponse>) => {
+    if (e.data.type !== 'result') return;
+    if (e.data.requestId !== inFlightRequestId) return;
+
+    const isLatest = e.data.requestId === latestRequestedRequestId;
+    inFlightRequestId = 0;
+
+    if (isLatest) {
+      putImageData(previewCanvas, e.data.imageData);
+    }
+
+    if (queuedRequest) {
+      const next = queuedRequest;
+      queuedRequest = null;
+      sendToWorker(next);
+      return;
+    }
+
+    store.setProcessing(false);
+    loadingOverlay.classList.add('hidden');
+  };
+}
+
+function sendToWorker(payload: { requestId: number; imageData: ImageData; params: DitherParams }): void {
+  ensureWorker();
+
+  inFlightRequestId = payload.requestId;
+  store.setProcessing(true);
+  loadingOverlay.classList.remove('hidden');
+
+  worker!.postMessage({
+    type: 'process',
+    requestId: payload.requestId,
+    imageData: payload.imageData,
+    params: payload.params
+  });
+}
+
 // Initialize presets
 PRESETS.forEach((preset, index) => {
   const option = document.createElement('option');
@@ -155,8 +206,8 @@ function loadImage(file: File): void {
     const img = new Image();
     img.onload = () => {
       // Check size limit
-      if (img.naturalWidth > 4096 || img.naturalHeight > 4096) {
-        alert('Image too large (max 4096px)');
+      if (img.naturalWidth > MAX_IMAGE_DIMENSION || img.naturalHeight > MAX_IMAGE_DIMENSION) {
+        alert(activeTranslations.imageSizeError);
         return;
       }
 
@@ -179,9 +230,6 @@ function processImage(): void {
   const state = store.getState();
   if (!state.originalImage) return;
 
-  store.setProcessing(true);
-  loadingOverlay.classList.remove('hidden');
-
   // Get container size for WYSIWYG
   const containerRect = canvasContainer.getBoundingClientRect();
   const maxWidth = containerRect.width - 20; // padding
@@ -198,24 +246,16 @@ function processImage(): void {
   originalCanvas.height = scaledCanvas.height;
   originalCanvas.getContext('2d')!.drawImage(scaledCanvas, 0, 0);
 
-  // Create worker if needed
-  if (!worker) {
-    worker = new ImageProcessorWorker();
-    worker.onmessage = (e: MessageEvent<WorkerResponse>) => {
-      if (e.data.type === 'result') {
-        putImageData(previewCanvas, e.data.imageData);
-        store.setProcessing(false);
-        loadingOverlay.classList.add('hidden');
-      }
-    };
+  const requestId = nextRequestId++;
+  latestRequestedRequestId = requestId;
+  const payload = { requestId, imageData, params: state.params };
+
+  if (inFlightRequestId !== 0) {
+    queuedRequest = payload;
+    return;
   }
 
-  // Send to worker
-  worker.postMessage({
-    type: 'process',
-    imageData,
-    params: state.params
-  });
+  sendToWorker(payload);
 }
 
 const debouncedProcess = debounce(processImage, 100);
@@ -326,11 +366,13 @@ presetSelect.addEventListener('change', () => {
   const index = parseInt(presetSelect.value);
   if (!isNaN(index) && PRESETS[index]) {
     const preset = PRESETS[index];
+    const current = store.getParams();
     store.updateParams({
       palette: preset.palette,
-      bloomThreshold: preset.bloomThreshold,
-      bloomIntensity: preset.bloomIntensity,
-      noiseType: preset.noiseType || 'grayscale',
+      bloomThreshold: preset.bloomThreshold ?? current.bloomThreshold,
+      bloomIntensity: preset.bloomIntensity ?? 0,
+      bloomRadius: current.bloomRadius,
+      noiseType: preset.noiseType ?? 'grayscale',
       noiseAmount: preset.noiseAmount ?? 0
     });
     updateUI();

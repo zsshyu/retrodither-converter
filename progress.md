@@ -294,3 +294,32 @@ retrodither-converter/
 - 开发服务器: `npm run dev` (默认 http://localhost:5173)
 - 生产构建: `npm run build`
 - 预览构建: `npm run preview`
+
+---
+
+### 2026-02-18 (Day 2)
+
+#### 目标
+
+- 面向发布的 P0 修复：提升预设切换稳定性、i18n 一致性、以及高频参数调整时的预览一致性
+
+#### 完成的任务
+
+- [x] **预设切换稳定性**：避免把未配置的 Bloom 参数写入 `undefined` 导致状态异常（对未配置的预设默认关闭 Bloom）
+- [x] **i18n 一致性**：图片尺寸超过 4096x4096 时的提示改为使用 i18n 文案（`imageSizeError`），避免硬编码英文提示
+- [x] **Worker 结果一致性**：为每次处理请求引入 `requestId`，主线程仅渲染最新请求结果；in-flight 时合并请求（只保留最后一次参数变更）
+- [x] **单文件构建验证**：重新构建 `dist/index.html`，确保上述修复被内联打包进单一 HTML 文件
+
+#### 构建状态
+
+```
+✓ TypeScript 编译通过
+✓ Vite 构建成功（单文件）
+✓ 输出文件:
+  - dist/index.html
+```
+
+#### 待办（发布 v1.8.3）
+
+- [ ] 生成 `retrodither-converter-v1.8.3.zip`（仅包含 `index.html`）
+- [ ] 提交并推送 git（在执行前需要明确确认）
